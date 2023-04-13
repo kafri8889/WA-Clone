@@ -28,8 +28,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +45,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.anafthdev.waclone.R
+import com.anafthdev.waclone.data.WACDestination
 import com.anafthdev.waclone.theme.WACloneTheme
 import com.anafthdev.waclone.uicomponent.ChatTextField
 import com.anafthdev.waclone.util.chatContentColor
@@ -65,18 +66,6 @@ fun ChatScreen(
 	
 	val systemUiController = rememberSystemUiController()
 	
-	val backgroundImage = remember(
-		viewModel.backgroundImage,
-		darkTheme
-	) {
-		if (viewModel.backgroundImage == Uri.EMPTY) {
-			return@remember if (darkTheme) "file:///android_asset/wa_chat_bg_dark.png".toUri()
-			else "file:///android_asset/wa_chat_bg_light.png".toUri()
-		}
-		
-		viewModel.backgroundImage
-	}
-	
 	SideEffect {
 		systemUiController.setStatusBarColor(
 			color = topBarColor
@@ -87,15 +76,31 @@ fun ChatScreen(
 		)
 	}
 	
+	LaunchedEffect(darkTheme) {
+		if (viewModel.backgroundImage == Uri.EMPTY) {
+			viewModel.updateBackgroundImage(
+				if (darkTheme) "file:///android_asset/wa_chat_bg_dark.png".toUri()
+				else "file:///android_asset/wa_chat_bg_light.png".toUri()
+			)
+		}
+		
+		if (viewModel.image == Uri.EMPTY) {
+			viewModel.updateImage(
+				if (darkTheme) "file:///android_asset/profile_picture_dark.png".toUri()
+				else "file:///android_asset/profile_picture_light.png".toUri()
+			)
+		}
+	}
+	
 	ChatScreenContent(
 		contactName = "Hannnii",
 		messageText = viewModel.messageText,
 		placeholderText = viewModel.placeholderText,
 		image = viewModel.image,
-		backgroundImage = backgroundImage,
+		backgroundImage = viewModel.backgroundImage,
 		onValueChange = viewModel::updateMessageText,
 		onOptionClicked = {
-		
+			navController.navigate(WACDestination.Sheet.ChatConfig.Home.route)
 		}
 	)
 }
@@ -264,6 +269,7 @@ private fun ChatTopAppBar(
 				AsyncImage(
 					model = image,
 					contentDescription = null,
+					contentScale = ContentScale.Crop,
 					modifier = Modifier
 						.size(36.dp)
 						.clip(RoundedCornerShape(100))

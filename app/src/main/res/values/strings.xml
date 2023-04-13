@@ -1,3 +1,8 @@
 <resources>
-    <string name="app_name">WA Clone</string>
+    <string name="app_name" translatable="false">WA Clone</string>
+
+    <string name="change_profile_picture">Change profile picture</string>
+    <string name="change_contact_name">Change contact name</string>
+    <string name="change_background">Change background</string>
+
 </resources>

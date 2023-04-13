@@ -4,14 +4,17 @@ import android.net.Uri
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.anafthdev.waclone.common.SharedData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-
+	private val sharedData: SharedData
 ): ViewModel() {
 	
 	var contactName by mutableStateOf("")
@@ -26,11 +29,45 @@ class ChatViewModel @Inject constructor(
 	var backgroundImage by mutableStateOf(Uri.EMPTY)
 		private set
 	
-	var image by mutableStateOf("file:///android_asset/hanni.jpg".toUri())
+	var image by mutableStateOf(Uri.EMPTY)
 		private set
 	
+	init {
+		viewModelScope.launch {
+			sharedData.contactName.collect { name ->
+				contactName = name
+			}
+		}
+		
+		viewModelScope.launch {
+			sharedData.messageText.collect { text ->
+				messageText = text
+			}
+		}
+		
+		viewModelScope.launch {
+			sharedData.placeholderText.collect { text ->
+				placeholderText = text
+			}
+		}
+		
+		viewModelScope.launch {
+			sharedData.backgroundImage.collect { uri ->
+				backgroundImage = uri
+			}
+		}
+		
+		viewModelScope.launch {
+			sharedData.image.collect { uri ->
+				Timber.i("update image: $uri")
+				
+				image = uri
+			}
+		}
+	}
+	
 	fun updateContactName(name: String) {
-		contactName
+		contactName = name
 	}
 	
 	fun updateMessageText(text: String) {
@@ -42,11 +79,15 @@ class ChatViewModel @Inject constructor(
 	}
 	
 	fun updateBackgroundImage(img: Uri) {
-		backgroundImage = img
+		viewModelScope.launch {
+			sharedData.updateBackgroundImage(img)
+		}
 	}
 	
 	fun updateImage(img: Uri) {
-		image = img
+		viewModelScope.launch {
+			sharedData.updateImage(img)
+		}
 	}
 	
 }

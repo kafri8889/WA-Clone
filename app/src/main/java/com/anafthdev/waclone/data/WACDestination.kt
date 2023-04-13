@@ -11,4 +11,11 @@ sealed class WACDestination(val route: String) {
 		object Root: WACDestination("chat/root")
 		object Home: WACDestination("chat/home")
 	}
+	
+	object Sheet {
+		class ChatConfig {
+			object Root: WACDestination("sheet/chat-config/root")
+			object Home: WACDestination("sheet/chat-config/home")
+		}
+	}
 }

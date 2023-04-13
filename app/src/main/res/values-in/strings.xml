@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="change_profile_picture">Ubah gambar profil</string>
+    <string name="change_contact_name">Ubah nama kontak</string>
+    <string name="change_background">Ubah latar belakang</string>
+</resources>

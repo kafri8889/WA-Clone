@@ -265,18 +265,20 @@ private fun ChatTopAppBar(
 		),
 		title = {
 			Row(
-				verticalAlignment = Alignment.CenterVertically
+				verticalAlignment = Alignment.CenterVertically,
+				modifier = Modifier
+					.offset(x = (-2).dp)
 			) {
 				AsyncImage(
 					model = image,
 					contentDescription = null,
 					contentScale = ContentScale.Crop,
 					modifier = Modifier
-						.size(36.dp)
+						.size(42.dp)
 						.clip(RoundedCornerShape(100))
 				)
 				
-				Spacer(modifier = Modifier.width(8.dp))
+				Spacer(modifier = Modifier.width(4.dp))
 				
 				Text(
 					text = contactName,
@@ -304,13 +306,29 @@ private fun ChatTopAppBar(
 					.offset(x = 4.dp)
 			) {
 				Icon(
-					painter = painterResource(id = R.drawable.ic_phone_add),
+					painter = painterResource(id = R.drawable.ic_video_cam_wa),
 					contentDescription = null,
 					tint = MaterialTheme.colorScheme.chatContentColor
 				)
 			}
 			
-			IconButton(onClick = onOptionClicked) {
+			IconButton(
+				onClick = {},
+				modifier = Modifier
+					.offset(x = 4.dp)
+			) {
+				Icon(
+					painter = painterResource(id = R.drawable.ic_phone_wa),
+					contentDescription = null,
+					tint = MaterialTheme.colorScheme.chatContentColor
+				)
+			}
+			
+			IconButton(
+				onClick = onOptionClicked,
+				modifier = Modifier
+					.offset(x = 4.dp)
+			) {
 				Icon(
 					imageVector = Icons.Default.MoreVert,
 					contentDescription = null,

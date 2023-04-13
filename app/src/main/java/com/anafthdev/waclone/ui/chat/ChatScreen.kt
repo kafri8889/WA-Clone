@@ -37,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -93,7 +94,7 @@ fun ChatScreen(
 	}
 	
 	ChatScreenContent(
-		contactName = "Hannnii",
+		contactName = viewModel.contactName,
 		messageText = viewModel.messageText,
 		placeholderText = viewModel.placeholderText,
 		image = viewModel.image,
@@ -279,6 +280,8 @@ private fun ChatTopAppBar(
 				
 				Text(
 					text = contactName,
+					overflow = TextOverflow.Ellipsis,
+					maxLines = 1,
 					style = MaterialTheme.typography.titleLarge.copy(
 						color = MaterialTheme.colorScheme.chatContentColor,
 						fontWeight = FontWeight.Bold,

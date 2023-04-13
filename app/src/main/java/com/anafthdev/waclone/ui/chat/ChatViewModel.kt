@@ -35,6 +35,8 @@ class ChatViewModel @Inject constructor(
 	init {
 		viewModelScope.launch {
 			sharedData.contactName.collect { name ->
+				Timber.i("update contact name: $name")
+				
 				contactName = name
 			}
 		}

@@ -29,6 +29,19 @@ class ChatConfigViewModel @Inject constructor(
 	
 	fun updateChatConfigType(type: ChatConfigType?) {
 		chatConfigType = type
+		
+		chatConfigScreenType = when (type) {
+			ChatConfigType.SetContactName -> ChatConfigScreenType.Config
+			else -> ChatConfigScreenType.ConfigSelector
+		}
+	}
+	
+	fun updateContactName(name: String) {
+		Timber.i("update contact name: $name")
+		
+		viewModelScope.launch {
+			sharedData.updateContactName(name)
+		}
 	}
 	
 	fun updateImage(uri: Uri) {

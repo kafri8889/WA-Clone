@@ -8,7 +8,7 @@ import javax.inject.Inject
 
 class SharedData @Inject constructor() {
 	
-	private val _contactName = MutableStateFlow("")
+	private val _contactName = MutableStateFlow("Name")
 	val contactName: StateFlow<String> = _contactName.asStateFlow()
 	
 	private val _messageText = MutableStateFlow("")

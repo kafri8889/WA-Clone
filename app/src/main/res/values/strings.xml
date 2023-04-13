@@ -4,5 +4,10 @@
     <string name="change_profile_picture">Change profile picture</string>
     <string name="change_contact_name">Change contact name</string>
     <string name="change_background">Change background</string>
+    <string name="add_chat_date">Add chat date</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">Ok</string>
+    <string name="today">Today</string>
+    <string name="yesterday">Yesterday</string>
 
 </resources>

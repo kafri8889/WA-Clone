@@ -4,6 +4,7 @@ import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
 class SharedData @Inject constructor() {
@@ -16,6 +17,9 @@ class SharedData @Inject constructor() {
 	
 	private val _placeholderText = MutableStateFlow("Ketik pesan")
 	val placeholderText: StateFlow<String> = _placeholderText.asStateFlow()
+	
+	private val _chatContents = MutableStateFlow(emptyList<ChatContent>())
+	val chatContents: StateFlow<List<ChatContent>> = _chatContents.asStateFlow()
 	
 	private val _backgroundImage = MutableStateFlow(Uri.EMPTY)
 	val backgroundImage: StateFlow<Uri> = _backgroundImage.asStateFlow()
@@ -33,6 +37,10 @@ class SharedData @Inject constructor() {
 	
 	suspend fun updatePlaceholderText(value: String) {
 		_placeholderText.emit(value)
+	}
+	
+	suspend fun updateChatContents(value: List<ChatContent>) {
+		_chatContents.update { value }
 	}
 	
 	suspend fun updateBackgroundImage(value: Uri) {

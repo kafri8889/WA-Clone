@@ -13,6 +13,14 @@ val ColorScheme.chatTextSupport: Color
 	@Composable
 	get() = if (isSystemInDarkTheme()) Color(0xff8C8C8C) else Color(0xff8C8C8C)
 
+val ColorScheme.chatDateText: Color
+	@Composable
+	get() = if (isSystemInDarkTheme()) Color(0xff8596a0) else Color(0xff546470)
+
+val ColorScheme.chatDateContainer: Color
+	@Composable
+	get() = if (isSystemInDarkTheme()) Color(0xff1d282e) else Color(0xfff7f7f6)
+
 val ColorScheme.chatBoxContainer: Color
 	@Composable
 	get() = if (isSystemInDarkTheme()) Color(0xff005d4b) else Color(0xffe7ffdb)

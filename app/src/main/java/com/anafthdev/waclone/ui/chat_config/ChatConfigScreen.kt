@@ -11,6 +11,13 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -19,14 +26,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.anafthdev.waclone.R
+import com.anafthdev.waclone.model.ChatDate
 import com.anafthdev.waclone.ui.chat_config.subscreen.ChatConfigSetContactName
 import com.anafthdev.waclone.uicomponent.DragHandle
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatConfigScreen(
 	navController: NavController,
 	viewModel: ChatConfigViewModel
 ) {
+	
+	val datePickerState = rememberDatePickerState(
+		initialSelectedDateMillis = System.currentTimeMillis()
+	)
 	
 	val imageLauncher = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.GetContent(),
@@ -46,8 +59,38 @@ fun ChatConfigScreen(
 			when (type) {
 				ChatConfigType.SetImageBackground -> imageLauncher.launch("image/*")
 				ChatConfigType.SetPhotoProfile -> imageLauncher.launch("image/*")
+				ChatConfigType.AddChatDate -> viewModel.showDatePicker()
 				else -> {}
 			}
+		}
+	}
+	
+	if (viewModel.isDatePickerShowed) {
+		DatePickerDialog(
+			onDismissRequest = viewModel::hideDatePicker,
+			confirmButton = {
+				Button(
+					onClick = {
+						viewModel.hideDatePicker()
+						viewModel.addChatContent(
+							ChatDate(
+								date = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
+							)
+						)
+					}
+				) {
+					Text(stringResource(id = R.string.ok))
+				}
+			},
+			dismissButton = {
+				TextButton(onClick = viewModel::hideDatePicker) {
+					Text(stringResource(id = R.string.cancel))
+				}
+			}
+		) {
+			DatePicker(
+				state = datePickerState
+			)
 		}
 	}
 	
@@ -107,7 +150,8 @@ private fun ChatConfigSelector(
 enum class ChatConfigType {
 	SetImageBackground,
 	SetPhotoProfile,
-	SetContactName;
+	SetContactName,
+	AddChatDate;
 	
 	val localizedName: String
 		@Composable
@@ -115,6 +159,7 @@ enum class ChatConfigType {
 			SetImageBackground -> stringResource(id = R.string.change_background)
 			SetPhotoProfile -> stringResource(id = R.string.change_profile_picture)
 			SetContactName -> stringResource(id = R.string.change_contact_name)
+			AddChatDate -> stringResource(id = R.string.add_chat_date)
 		}
 }
 

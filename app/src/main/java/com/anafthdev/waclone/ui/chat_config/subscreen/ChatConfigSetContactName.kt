@@ -1,5 +1,6 @@
 package com.anafthdev.waclone.ui.chat_config.subscreen
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -37,15 +38,17 @@ fun ChatConfigSetContactName(
 				name = it
 			},
 			trailingIcon = {
-				IconButton(
-					onClick = {
-						onContactNameUpdated(name)
+				AnimatedVisibility(visible = name.isNotBlank()) {
+					IconButton(
+						onClick = {
+							onContactNameUpdated(name)
+						}
+					) {
+						Icon(
+							painter = painterResource(id = R.drawable.ic_check),
+							contentDescription = null
+						)
 					}
-				) {
-					Icon(
-						painter = painterResource(id = R.drawable.ic_check),
-						contentDescription = null
-					)
 				}
 			},
 			modifier = Modifier

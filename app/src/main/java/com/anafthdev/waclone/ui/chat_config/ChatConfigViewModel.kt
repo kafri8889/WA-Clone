@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anafthdev.waclone.common.ChatContent
 import com.anafthdev.waclone.common.SharedData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -16,6 +17,9 @@ import javax.inject.Inject
 class ChatConfigViewModel @Inject constructor(
 	private val sharedData: SharedData
 ): ViewModel() {
+	
+	var isDatePickerShowed by mutableStateOf(false)
+		private set
 	
 	var chatConfigScreenType by mutableStateOf(ChatConfigScreenType.ConfigSelector)
 		private set
@@ -54,6 +58,28 @@ class ChatConfigViewModel @Inject constructor(
 				else -> {}
 			}
 		}
+		
+		chatConfigType = null
+	}
+	
+	fun addChatContent(content: ChatContent) {
+		viewModelScope.launch {
+			sharedData.updateChatContents(
+				sharedData.chatContents.value.toMutableList().apply {
+					add(content)
+				}
+			)
+		}
+	}
+	
+	fun showDatePicker() {
+		isDatePickerShowed = true
+		
+		chatConfigType = null
+	}
+	
+	fun hideDatePicker() {
+		isDatePickerShowed = false
 		
 		chatConfigType = null
 	}

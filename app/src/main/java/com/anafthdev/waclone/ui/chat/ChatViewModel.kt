@@ -2,11 +2,14 @@ package com.anafthdev.waclone.ui.chat
 
 import android.net.Uri
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.anafthdev.waclone.common.ChatContent
 import com.anafthdev.waclone.common.SharedData
+import com.anafthdev.waclone.extension.swap
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -32,6 +35,8 @@ class ChatViewModel @Inject constructor(
 	var image by mutableStateOf(Uri.EMPTY)
 		private set
 	
+	var chatContents = mutableStateListOf<ChatContent>()
+	
 	init {
 		viewModelScope.launch {
 			sharedData.contactName.collect { name ->
@@ -50,6 +55,12 @@ class ChatViewModel @Inject constructor(
 		viewModelScope.launch {
 			sharedData.placeholderText.collect { text ->
 				placeholderText = text
+			}
+		}
+		
+		viewModelScope.launch {
+			sharedData.chatContents.collect { contents ->
+				chatContents.swap(contents)
 			}
 		}
 		

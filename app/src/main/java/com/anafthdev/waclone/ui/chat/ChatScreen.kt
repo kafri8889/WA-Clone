@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -30,11 +32,13 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,14 +50,20 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.anafthdev.waclone.R
+import com.anafthdev.waclone.common.ChatContent
 import com.anafthdev.waclone.data.WACDestination
+import com.anafthdev.waclone.model.ChatDate
 import com.anafthdev.waclone.theme.WACloneTheme
+import com.anafthdev.waclone.uicomponent.ChatDateItem
 import com.anafthdev.waclone.uicomponent.ChatTextField
 import com.anafthdev.waclone.util.chatContentColor
 import com.anafthdev.waclone.util.fabContainer
 import com.anafthdev.waclone.util.navBar
 import com.anafthdev.waclone.util.topBar
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 @Composable
 fun ChatScreen(
@@ -99,6 +109,7 @@ fun ChatScreen(
 		placeholderText = viewModel.placeholderText,
 		image = viewModel.image,
 		backgroundImage = viewModel.backgroundImage,
+		chatContents = viewModel.chatContents,
 		onValueChange = viewModel::updateMessageText,
 		onOptionClicked = {
 			navController.navigate(WACDestination.Sheet.ChatConfig.Home.route)
@@ -117,6 +128,7 @@ private fun ChatScreenContentPreview() {
 			placeholderText = "Ketik pesan",
 			image = "file:///android_asset/hanni.jpg".toUri(),
 			backgroundImage = "file:///android_asset/hanni.jpg".toUri(),
+			chatContents = emptyList(),
 			onOptionClicked = {},
 			onValueChange = {}
 		)
@@ -130,9 +142,16 @@ private fun ChatScreenContent(
 	contactName: String,
 	messageText: String,
 	placeholderText: String,
+	chatContents: List<ChatContent>,
 	onValueChange: (String) -> Unit,
 	onOptionClicked: () -> Unit
 ) {
+	
+	val context = LocalContext.current
+	
+	val dateFormatter = remember {
+		SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
+	}
 	
 	Column(
 		modifier = Modifier
@@ -158,92 +177,137 @@ private fun ChatScreenContent(
 					.zIndex(1f)
 			)
 			
-			Row(
-				verticalAlignment = Alignment.Bottom,
+			Column(
 				modifier = Modifier
 					.padding(4.dp)
 					.fillMaxWidth()
 					.zIndex(2f)
 					.align(Alignment.BottomCenter)
 			) {
-				ChatTextField(
-					value = messageText,
-					onValueChange = onValueChange,
-					textStyle = MaterialTheme.typography.bodyLarge.copy(
-						color = MaterialTheme.colorScheme.chatContentColor,
-						fontSize = 18.sp
-					),
-					placeholder = {
-						Text(
-							text = placeholderText
-						)
-					},
-					leadingIcon = {
-						IconButton(onClick = {}) {
-							Icon(
-								painter = painterResource(id = R.drawable.ic_grinning_face_with_big_eyes),
-								contentDescription = null,
-								tint = Color(0xff8596a0),
-								modifier = Modifier
-									.size(28.dp)
-							)
+				LazyColumn(
+					modifier = Modifier
+						.fillMaxWidth()
+						.weight(1f)
+				) {
+					items(chatContents) { content ->
+						Column(
+							modifier = Modifier
+								.fillMaxWidth()
+						) {
+							when (content) {
+								is ChatDate -> {
+									val date = remember(content.date) {
+										val curCal = Calendar.getInstance()
+										val cal = Calendar.getInstance().apply {
+											timeInMillis = content.date
+										}
+										
+										val today = dateFormatter.format(curCal.time) == dateFormatter.format(cal.time)
+										val yesterday = dateFormatter.format(
+											curCal.apply {
+												add(Calendar.DAY_OF_YEAR, -1)
+											}.time
+										) == dateFormatter.format(cal.time)
+										
+										when {
+											today -> context.getString(R.string.today)
+											yesterday -> context.getString(R.string.yesterday)
+											else -> dateFormatter.format(cal.time)
+										}
+									}
+									
+									ChatDateItem(
+										date = date,
+										modifier = Modifier
+											.padding(vertical = 8.dp)
+											.align(Alignment.CenterHorizontally)
+									)
+								}
+							}
 						}
-					},
-					trailingIcon = {
-						Row {
-							IconButton(
-								onClick = {},
-								modifier = Modifier
-									.offset(x = 4.dp)
-							) {
+					}
+				}
+				
+				Row(verticalAlignment = Alignment.Bottom) {
+					ChatTextField(
+						value = messageText,
+						onValueChange = onValueChange,
+						textStyle = MaterialTheme.typography.bodyLarge.copy(
+							color = MaterialTheme.colorScheme.chatContentColor,
+							fontSize = 18.sp
+						),
+						placeholder = {
+							Text(
+								text = placeholderText
+							)
+						},
+						leadingIcon = {
+							IconButton(onClick = {}) {
 								Icon(
-									painter = painterResource(id = R.drawable.ic_clip),
+									painter = painterResource(id = R.drawable.ic_grinning_face_with_big_eyes),
 									contentDescription = null,
 									tint = Color(0xff8596a0),
 									modifier = Modifier
 										.size(28.dp)
 								)
 							}
-							
-							AnimatedVisibility(
-								visible = messageText.isBlank()
-							) {
-								IconButton(onClick = {}) {
+						},
+						trailingIcon = {
+							Row {
+								IconButton(
+									onClick = {},
+									modifier = Modifier
+										.offset(x = 4.dp)
+								) {
 									Icon(
-										painter = painterResource(id = R.drawable.ic_camera_wa),
+										painter = painterResource(id = R.drawable.ic_clip),
 										contentDescription = null,
 										tint = Color(0xff8596a0),
 										modifier = Modifier
 											.size(28.dp)
 									)
 								}
+								
+								AnimatedVisibility(
+									visible = messageText.isBlank()
+								) {
+									IconButton(onClick = {}) {
+										Icon(
+											painter = painterResource(id = R.drawable.ic_camera_wa),
+											contentDescription = null,
+											tint = Color(0xff8596a0),
+											modifier = Modifier
+												.size(28.dp)
+										)
+									}
+								}
 							}
-						}
-					},
-					modifier = Modifier
-						.heightIn(min = 48.dp)
-						.weight(1f)
-				)
-				
-				Spacer(modifier = Modifier.width(4.dp))
-				
-				FloatingActionButton(
-					shape = RoundedCornerShape(100),
-					containerColor = MaterialTheme.colorScheme.fabContainer,
-					onClick = {
-					
-					},
-					modifier = Modifier
-						.sizeIn(maxWidth = 48.dp, maxHeight = 48.dp)
-				) {
-					Icon(
-						painter = painterResource(
-							id = if (messageText.isEmpty()) R.drawable.ic_audio_record
-							else R.drawable.ic_send
-						),
-						contentDescription = null,
-						tint = Color.White
+						},
+						modifier = Modifier
+							.heightIn(min = 48.dp)
+							.weight(1f)
 					)
+					
+					Spacer(modifier = Modifier.width(4.dp))
+					
+					FloatingActionButton(
+						shape = RoundedCornerShape(100),
+						containerColor = MaterialTheme.colorScheme.fabContainer,
+						onClick = {
+						
+						},
+						modifier = Modifier
+							.sizeIn(maxWidth = 48.dp, maxHeight = 48.dp)
+					) {
+						Icon(
+							painter = painterResource(
+								id = if (messageText.isEmpty()) R.drawable.ic_audio_record
+								else R.drawable.ic_send
+							),
+							contentDescription = null,
+							tint = Color.White
+						)
+					}
 				}
 			}
 		}

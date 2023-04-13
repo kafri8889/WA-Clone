@@ -1,6 +1,7 @@
 package com.anafthdev.waclone.ui.chat
 
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,10 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.MaterialTheme.colors
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -27,8 +25,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -69,9 +65,16 @@ fun ChatScreen(
 	
 	val systemUiController = rememberSystemUiController()
 	
-	val backgroundImage = remember(darkTheme) {
-		if (darkTheme) "file:///android_asset/wa_chat_bg_dark.png".toUri()
-		else "file:///android_asset/wa_chat_bg_light.png".toUri()
+	val backgroundImage = remember(
+		viewModel.backgroundImage,
+		darkTheme
+	) {
+		if (viewModel.backgroundImage == Uri.EMPTY) {
+			return@remember if (darkTheme) "file:///android_asset/wa_chat_bg_dark.png".toUri()
+			else "file:///android_asset/wa_chat_bg_light.png".toUri()
+		}
+		
+		viewModel.backgroundImage
 	}
 	
 	SideEffect {
@@ -86,8 +89,11 @@ fun ChatScreen(
 	
 	ChatScreenContent(
 		contactName = "Hannnii",
-		image = "file:///android_asset/hanni.jpg".toUri(),
+		messageText = viewModel.messageText,
+		placeholderText = viewModel.placeholderText,
+		image = viewModel.image,
 		backgroundImage = backgroundImage,
+		onValueChange = viewModel::updateMessageText,
 		onOptionClicked = {
 		
 		}
@@ -101,9 +107,12 @@ private fun ChatScreenContentPreview() {
 	WACloneTheme {
 		ChatScreenContent(
 			contactName = "Hannnii",
+			messageText = "",
+			placeholderText = "Ketik pesan",
 			image = "file:///android_asset/hanni.jpg".toUri(),
 			backgroundImage = "file:///android_asset/hanni.jpg".toUri(),
-			onOptionClicked = {}
+			onOptionClicked = {},
+			onValueChange = {}
 		)
 	}
 }
@@ -113,6 +122,9 @@ private fun ChatScreenContent(
 	image: Uri,
 	backgroundImage: Uri,
 	contactName: String,
+	messageText: String,
+	placeholderText: String,
+	onValueChange: (String) -> Unit,
 	onOptionClicked: () -> Unit
 ) {
 	
@@ -141,7 +153,7 @@ private fun ChatScreenContent(
 			)
 			
 			Row(
-				verticalAlignment = Alignment.CenterVertically,
+				verticalAlignment = Alignment.Bottom,
 				modifier = Modifier
 					.padding(4.dp)
 					.fillMaxWidth()
@@ -149,13 +161,15 @@ private fun ChatScreenContent(
 					.align(Alignment.BottomCenter)
 			) {
 				ChatTextField(
-					value = "",
-					onValueChange = {
-					
-					},
+					value = messageText,
+					onValueChange = onValueChange,
+					textStyle = MaterialTheme.typography.bodyLarge.copy(
+						color = MaterialTheme.colorScheme.chatContentColor,
+						fontSize = 18.sp
+					),
 					placeholder = {
 						Text(
-							text = "Ketik pesan"
+							text = placeholderText
 						)
 					},
 					leadingIcon = {
@@ -185,19 +199,23 @@ private fun ChatScreenContent(
 								)
 							}
 							
-							IconButton(onClick = {}) {
-								Icon(
-									painter = painterResource(id = R.drawable.ic_camera_wa),
-									contentDescription = null,
-									tint = Color(0xff8596a0),
-									modifier = Modifier
-										.size(28.dp)
-								)
+							AnimatedVisibility(
+								visible = messageText.isBlank()
+							) {
+								IconButton(onClick = {}) {
+									Icon(
+										painter = painterResource(id = R.drawable.ic_camera_wa),
+										contentDescription = null,
+										tint = Color(0xff8596a0),
+										modifier = Modifier
+											.size(28.dp)
+									)
+								}
 							}
 						}
 					},
 					modifier = Modifier
-						.heightIn(max = 48.dp)
+						.heightIn(min = 48.dp)
 						.weight(1f)
 				)
 				
@@ -213,7 +231,10 @@ private fun ChatScreenContent(
 						.sizeIn(maxWidth = 48.dp, maxHeight = 48.dp)
 				) {
 					Icon(
-						painter = painterResource(id = R.drawable.ic_audio_record),
+						painter = painterResource(
+							id = if (messageText.isEmpty()) R.drawable.ic_audio_record
+							else R.drawable.ic_send
+						),
 						contentDescription = null,
 						tint = Color.White
 					)

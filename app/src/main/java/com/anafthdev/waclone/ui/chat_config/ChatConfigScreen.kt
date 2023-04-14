@@ -17,7 +17,9 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
@@ -26,7 +28,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.anafthdev.waclone.R
+import com.anafthdev.waclone.model.Chat
 import com.anafthdev.waclone.model.ChatDate
+import com.anafthdev.waclone.ui.chat_config.subscreen.ChatConfigAddChatTypeText
 import com.anafthdev.waclone.ui.chat_config.subscreen.ChatConfigSetContactName
 import com.anafthdev.waclone.uicomponent.DragHandle
 
@@ -41,11 +45,18 @@ fun ChatConfigScreen(
 		initialSelectedDateMillis = System.currentTimeMillis()
 	)
 	
+	val timePickerState = rememberTimePickerState(
+		initialMinute = viewModel.minute,
+		initialHour = viewModel.hour,
+		is24Hour = true
+	)
+	
 	val imageLauncher = rememberLauncherForActivityResult(
 		contract = ActivityResultContracts.GetContent(),
 		onResult = { uri ->
 			uri?.let {
 				viewModel.updateImage(uri)
+				navController.popBackStack()
 			}
 		}
 	)
@@ -65,6 +76,45 @@ fun ChatConfigScreen(
 		}
 	}
 	
+	if (viewModel.isTimePickerShowed) {
+		// TODO: ganti ke time picker dialog
+		DatePickerDialog(
+			onDismissRequest = {
+				viewModel.hideTimePicker()
+				viewModel.updateChatConfigType(ChatConfigType.AddChatTypeText)
+			},
+			confirmButton = {
+				Button(
+					onClick = {
+						viewModel.hideTimePicker()
+						viewModel.updateHour(timePickerState.hour)
+						viewModel.updateMinute(timePickerState.minute)
+						viewModel.updateChatConfigType(ChatConfigType.AddChatTypeText)
+					}
+				) {
+					Text(stringResource(id = R.string.ok))
+				}
+			},
+			dismissButton = {
+				TextButton(
+					onClick = {
+						viewModel.hideTimePicker()
+						viewModel.updateChatConfigType(ChatConfigType.AddChatTypeText)
+					}
+				) {
+					Text(stringResource(id = R.string.cancel))
+				}
+			}
+		) {
+			TimePicker(
+				state = timePickerState,
+				modifier = Modifier
+					.padding(16.dp)
+					.align(Alignment.CenterHorizontally)
+			)
+		}
+	}
+	
 	if (viewModel.isDatePickerShowed) {
 		DatePickerDialog(
 			onDismissRequest = viewModel::hideDatePicker,
@@ -77,6 +127,8 @@ fun ChatConfigScreen(
 								date = datePickerState.selectedDateMillis ?: System.currentTimeMillis()
 							)
 						)
+						
+						navController.popBackStack()
 					}
 				) {
 					Text(stringResource(id = R.string.ok))
@@ -105,6 +157,27 @@ fun ChatConfigScreen(
 				when (viewModel.chatConfigType) {
 					ChatConfigType.SetContactName -> ChatConfigSetContactName(
 						onContactNameUpdated = viewModel::updateContactName
+					)
+					ChatConfigType.AddChatTypeText -> ChatConfigAddChatTypeText(
+						text = viewModel.text,
+						hour = viewModel.hour,
+						minute = viewModel.minute,
+						sendStatus = viewModel.sendStatus,
+						onSendStatusChange = viewModel::updateSendStatus,
+						onTimeClicked = viewModel::showTimePicker,
+						onValueChange = viewModel::updateText,
+						onAdd = {
+							viewModel.addChatContent(
+								Chat(
+									text = viewModel.text,
+									hour = viewModel.hour,
+									minute = viewModel.minute,
+									sendStatus = viewModel.sendStatus
+								)
+							)
+							
+							navController.popBackStack()
+						}
 					)
 					else -> ChatConfigSelector(
 						onTypeChange = viewModel::updateChatConfigType
@@ -151,6 +224,7 @@ enum class ChatConfigType {
 	SetImageBackground,
 	SetPhotoProfile,
 	SetContactName,
+	AddChatTypeText,
 	AddChatDate;
 	
 	val localizedName: String
@@ -159,6 +233,7 @@ enum class ChatConfigType {
 			SetImageBackground -> stringResource(id = R.string.change_background)
 			SetPhotoProfile -> stringResource(id = R.string.change_profile_picture)
 			SetContactName -> stringResource(id = R.string.change_contact_name)
+			AddChatTypeText -> stringResource(id = R.string.add_chat_type_text)
 			AddChatDate -> stringResource(id = R.string.add_chat_date)
 		}
 }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -32,15 +34,21 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -52,8 +60,10 @@ import coil.compose.AsyncImage
 import com.anafthdev.waclone.R
 import com.anafthdev.waclone.common.ChatContent
 import com.anafthdev.waclone.data.WACDestination
+import com.anafthdev.waclone.model.Chat
 import com.anafthdev.waclone.model.ChatDate
 import com.anafthdev.waclone.theme.WACloneTheme
+import com.anafthdev.waclone.uicomponent.ChatBox
 import com.anafthdev.waclone.uicomponent.ChatDateItem
 import com.anafthdev.waclone.uicomponent.ChatTextField
 import com.anafthdev.waclone.util.chatContentColor
@@ -147,6 +157,7 @@ private fun ChatScreenContent(
 	onOptionClicked: () -> Unit
 ) {
 	
+	val config = LocalConfiguration.current
 	val context = LocalContext.current
 	
 	val dateFormatter = remember {
@@ -222,6 +233,36 @@ private fun ChatScreenContent(
 											.padding(vertical = 8.dp)
 											.align(Alignment.CenterHorizontally)
 									)
+								}
+								is Chat -> {
+									var multiLine by remember { mutableStateOf(true) }
+									
+									ChatBox(
+										chat = content,
+										multiLine = multiLine,
+										modifier = Modifier
+											.widthIn(max = config.screenWidthDp.dp * 0.92f)
+											.align(Alignment.End)
+									) {
+										Text(
+//											text = "Manderoooooooooooooooooooooooooooooooooooo",
+											text = content.text,
+											style = LocalTextStyle.current.copy(
+												platformStyle = PlatformTextStyle(
+													includeFontPadding = false
+												),
+												lineHeightStyle = LineHeightStyle(
+													alignment = LineHeightStyle.Alignment.Top,
+													trim = LineHeightStyle.Trim.FirstLineTop
+												)
+											),
+											onTextLayout = { result ->
+												multiLine = result.lineCount > 1
+											},
+											modifier = Modifier
+												.padding(top = 2.dp)
+										)
+									}
 								}
 							}
 						}

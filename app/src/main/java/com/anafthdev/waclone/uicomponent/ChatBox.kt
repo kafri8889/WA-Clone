@@ -4,6 +4,8 @@ import android.content.res.Configuration
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,6 +26,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.Outline
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.Path
@@ -31,11 +34,14 @@ import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewParameter
 import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import com.anafthdev.waclone.data.LocalChatDataProvider
+import com.anafthdev.waclone.data.SendStatus
 import com.anafthdev.waclone.extension.lineTo
 import com.anafthdev.waclone.extension.moveTo
 import com.anafthdev.waclone.model.Chat
@@ -66,6 +72,7 @@ private fun ChatBoxPreviewLight(
 			chat = chat,
 			messageContent = {
 				Text(chat.text)
+				false
 			}
 		)
 	}
@@ -81,7 +88,9 @@ private fun ChatBoxPreviewDark(
 		ChatBox(
 			chat = chat,
 			messageContent = {
-				Text(chat.text)
+				Text(
+					text = chat.text
+				)
 			}
 		)
 	}
@@ -91,15 +100,20 @@ private fun ChatBoxPreviewDark(
 fun ChatBox(
 	chat: Chat,
 	modifier: Modifier = Modifier,
+	multiLine: Boolean = false,
 	showTriangle: Boolean = true,
 	containerColor: Color = MaterialTheme.colorScheme.chatBoxContainer,
 	messageContent: @Composable () -> Unit
 ) {
-
-	Row {
+	
+	Row(
+		modifier = Modifier
+			.offset(x = 12.dp)
+			.then(modifier)
+	) {
 		BoxWithConstraints(
-			modifier = modifier
-				.weight(1f)
+			modifier = Modifier
+				.weight(1f, false)
 				.clip(
 					RoundedCornerShape(
 						topStart = 16.dp,
@@ -109,41 +123,108 @@ fun ChatBox(
 					)
 				)
 				.background(containerColor)
-				.padding(8.dp)
+				.padding(
+					horizontal = 8.dp,
+					vertical = 6.dp
+				)
 		) {
-			Column(
-				modifier = Modifier
-					.width(maxWidth)
-			) {
-				ProvideTextStyle(
-					value = MaterialTheme.typography.bodyMedium.copy(
-						color = MaterialTheme.colorScheme.chatContentColor
-					)
-				) {
-					messageContent()
-				}
-				
-				Row(
-					verticalAlignment = Alignment.Bottom,
+			if (multiLine) {
+				Column(
 					modifier = Modifier
-						.align(Alignment.End)
 				) {
-					Text(
-						text = "${hourMinuteFormatter(chat.hour)}:${hourMinuteFormatter(chat.minute)}",
-						style = MaterialTheme.typography.labelSmall.copy(
-							color = MaterialTheme.colorScheme.chatTextSupport
-						)
-					)
-					
-					Spacer(modifier = Modifier.width(4.dp))
-					
-					Image(
-						painter = painterResource(id = chat.sendStatus.icon),
-						contentDescription = null,
+					MessageContent(
+//						messageContent = { Text("Longn mmmmeeeeesssseejjjjjj mmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjjmmmmeeeeesssseejjjjjj") },
+						messageContent = messageContent,
 						modifier = Modifier
-							.width(16.dp)
-							.aspectRatio(1f)
+							.padding(end = 24.dp)
+							.align(Alignment.Start)
 					)
+					
+					Spacer(modifier = Modifier.width(8.dp))
+					
+					Row(
+						verticalAlignment = Alignment.Bottom,
+						modifier = Modifier
+							.padding(horizontal = 2.dp)
+							.align(Alignment.End)
+					) {
+						Text(
+							text = "${hourMinuteFormatter(chat.hour)}:${hourMinuteFormatter(chat.minute)}",
+							style = MaterialTheme.typography.labelMedium.copy(
+								color = MaterialTheme.colorScheme.chatTextSupport,
+								platformStyle = PlatformTextStyle(
+									includeFontPadding = false
+								),
+								lineHeightStyle = LineHeightStyle(
+									alignment = LineHeightStyle.Alignment.Bottom,
+									trim = LineHeightStyle.Trim.LastLineBottom
+								)
+							)
+						)
+
+						Spacer(modifier = Modifier.width(4.dp))
+
+						Image(
+							painter = painterResource(id = chat.sendStatus.icon),
+							contentDescription = null,
+							colorFilter = when (chat.sendStatus) {
+								SendStatus.Viewed -> null
+								else -> ColorFilter.tint(MaterialTheme.colorScheme.chatTextSupport)
+							},
+							modifier = Modifier
+								.width(18.dp)
+								.aspectRatio(1f)
+						)
+					}
+				}
+			} else {
+				Row(
+					horizontalArrangement = Arrangement.End,
+					modifier = Modifier
+				) {
+					MessageContent(
+						messageContent = messageContent,
+						modifier = Modifier
+							.weight(1f, false)
+							.align(Alignment.Top)
+					)
+
+					Spacer(modifier = Modifier.width(4.dp))
+
+					Row(
+						verticalAlignment = Alignment.Bottom,
+						modifier = Modifier
+							.padding(horizontal = 2.dp)
+							.align(Alignment.Bottom)
+					) {
+						Text(
+							text = "${hourMinuteFormatter(chat.hour)}:${hourMinuteFormatter(chat.minute)}",
+							style = MaterialTheme.typography.labelMedium.copy(
+								color = MaterialTheme.colorScheme.chatTextSupport,
+								platformStyle = PlatformTextStyle(
+									includeFontPadding = false
+								),
+								lineHeightStyle = LineHeightStyle(
+									alignment = LineHeightStyle.Alignment.Bottom,
+									trim = LineHeightStyle.Trim.LastLineBottom
+								)
+							)
+						)
+
+						Spacer(modifier = Modifier.width(4.dp))
+
+						Image(
+							painter = painterResource(id = chat.sendStatus.icon),
+							contentDescription = null,
+							colorFilter = when (chat.sendStatus) {
+								SendStatus.Viewed -> null
+								else -> ColorFilter.tint(MaterialTheme.colorScheme.chatTextSupport)
+							},
+							modifier = Modifier
+								.width(18.dp)
+								.aspectRatio(1f)
+						)
+					}
 				}
 			}
 		}
@@ -152,9 +233,7 @@ fun ChatBox(
 			Triangle(
 				containerColor = containerColor,
 				modifier = Modifier
-					.offset(
-						x = (-8).dp
-					)
+					.offset(x = (-8).dp)
 			)
 		}
 	}
@@ -186,6 +265,25 @@ private fun Triangle(
 					pathEffect = PathEffect.cornerPathEffect(rect.maxDimension / 3)
 				}
 			)
+		}
+	}
+}
+
+@Composable
+fun MessageContent(
+	modifier: Modifier = Modifier,
+	messageContent: @Composable () -> Unit
+) {
+	
+	Box(
+		modifier = modifier
+	) {
+		ProvideTextStyle(
+			value = MaterialTheme.typography.bodyLarge.copy(
+				color = MaterialTheme.colorScheme.chatContentColor
+			)
+		) {
+			messageContent()
 		}
 	}
 }

@@ -9,5 +9,12 @@
     <string name="ok">Ok</string>
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>
+    <string name="add_chat_type_text">Add chat type text</string>
+    <string name="text">Text</string>
+    <string name="time">Time</string>
+    <string name="send">Send</string>
+    <string name="sended">Sended</string>
+    <string name="viewed">Viewed</string>
+    <string name="add">Add</string>
 
 </resources>

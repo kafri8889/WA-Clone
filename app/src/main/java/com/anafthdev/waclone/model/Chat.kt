@@ -1,5 +1,6 @@
 package com.anafthdev.waclone.model
 
+import com.anafthdev.waclone.common.ChatContent
 import com.anafthdev.waclone.data.SendStatus
 
 data class Chat(
@@ -7,4 +8,4 @@ data class Chat(
 	val hour: Int,
 	val minute: Int,
 	val sendStatus: SendStatus
-)
+): ChatContent

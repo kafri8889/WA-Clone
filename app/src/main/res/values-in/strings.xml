@@ -9,4 +9,11 @@
     <string name="ok">Oke</string>
     <string name="today">Hari ini</string>
     <string name="yesterday">Kemarin</string>
+    <string name="add_chat_type_text">Tambah chat tipe text</string>
+    <string name="text">Teks</string>
+    <string name="time">Waktu</string>
+    <string name="send">Mengirim</string>
+    <string name="sended">Terkirim</string>
+    <string name="viewed">Dilihat</string>
+    <string name="add">Tambah</string>
 </resources>
